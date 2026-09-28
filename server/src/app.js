@@ -1,5 +1,7 @@
 import express from 'express';
 import cors from 'cors';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { errorHandler, notFound } from './middleware/errors.js';
 import authRoutes from './modules/auth/auth.routes.js';
 import userRoutes from './modules/auth/users.routes.js';
@@ -26,7 +28,17 @@ app.use('/api/v1', ratingsRoutes);
 app.use('/api/v1/wallet', walletRoutes);
 app.use('/api/v1/market', marketRoutes);
 
-app.use(notFound);
+app.use('/api', notFound);
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const clientBuildPath = path.join(__dirname, '../../client/dist');
+
+app.use(express.static(clientBuildPath));
+app.use((req, res) => {
+  res.sendFile(path.join(clientBuildPath, 'index.html'));
+});
+
 app.use(errorHandler);
 
 export default app;

@@ -1,17 +1,90 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../api/client.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { Button, Modal, TierBadge, Spinner, EmptyState, ErrorState, VCT } from '../components/ui.jsx';
 import { PriceBadge, WhyThisPrice } from '../components/PriceBadge.jsx';
-import { LineChart, Line, XAxis, YAxis, Tooltip, ReferenceLine, ResponsiveContainer, BarChart, Bar } from 'recharts';
+import { AddSlotsModal } from '../components/AddSlotsModal.jsx';
+import { PurchaseModal } from '../components/PurchaseModal.jsx';
+import { ResponsiveContainer, LineChart, XAxis, YAxis, Tooltip, ReferenceLine, Line, BarChart, Bar } from 'recharts';
+
+function getSkillAudienceAndOverview(skill) {
+  const category = skill?.category || 'General';
+
+  const audienceMap = {
+    Haki: {
+      overview: 'Haki is a mysterious aura dormant in living creatures across the Grand Line. Mastering Haki grants armor projection, aura prediction, and willpower manifestation to overpower foes without physical contact.',
+      targetAudience: [
+        'Pirates preparing to enter the turbulent weather of the New World',
+        'Combatants seeking to break through Logia Devil Fruit defenses',
+        'Captains looking to inspire unyielding crew morale and leadership aura',
+      ],
+      prerequisites: 'Disciplined spirit, 150+ VCT balance, and willingness to endure rigorous endurance drills.',
+      outcomes: ['Awakened Observation & Armament Haki', 'Black Lightning strike aura', '100% Escrow Protection'],
+    },
+    Swordsmanship: {
+      overview: 'The art of precision blade strikes, flying slash projection, and breath-of-steel sword control. Learn to cut iron, deflect cannonballs, and channel black blade willpower.',
+      targetAudience: [
+        'Swordsmen aiming to challenge the Warlords of the Sea',
+        'Fighters wanting to master 1-Sword, 2-Sword, or 3-Sword styles',
+        'Pirates seeking high-speed counter-strike reflexes in battle',
+      ],
+      prerequisites: 'Melee weapon familiarity, high reflex agility, and dedication to sword form practice.',
+      outcomes: ['Flying slash projectile control', 'Steel-slicing precision', 'Blade endurance techniques'],
+    },
+    Cooking: {
+      overview: 'All Blue cuisine mastery, tactical nutrition, and Devil Fruit ingredient pairing. Fuel your crew with stamina-boosting feasts and combat meal prep.',
+      targetAudience: [
+        'Ship cooks responsible for keeping pirate crews in peak combat condition',
+        'Gourmet pirates seeking rare All Blue seasonings and Devil Fruit recipes',
+        'Captains looking to maximize crew stamina recovery during long voyages',
+      ],
+      prerequisites: 'Basic culinary knife safety and curiosity for exotic Grand Line spices.',
+      outcomes: ['Stamina-boosting meal recipes', 'Devil Fruit dish pairing mastery', 'Sea King butchery tactics'],
+    },
+    Navigation: {
+      overview: 'Grand Line weather forecasting, Log Pose calibration, and Cyclone trajectory prediction. Navigate unpredictable sea currents and evade Marine blockades.',
+      targetAudience: [
+        'Navigators steering ships through the turbulent currents of Sabaody & New World',
+        'Pirates wanting to decode climate anomalies and sea monster migratory routes',
+        'Captains seeking safest passage across calm belt zones',
+      ],
+      prerequisites: 'Basic map reading and understanding of barometric pressure trends.',
+      outcomes: ['Cyclone path prediction', 'Multi-Log Pose synchronization', 'Calm Belt survival strategy'],
+    },
+    'Fish-Man Karate': {
+      overview: 'Water manipulation techniques that punch through air and water molecules directly inside an opponent body, bypassing physical armor.',
+      targetAudience: [
+        'Hand-to-hand martial artists wanting long-range shockwave punches',
+        'Naval fighters operating near ocean environments and ship hulls',
+        'Pirates seeking water-bullet projectile control',
+      ],
+      prerequisites: 'Stamina endurance and water fluidity mindset.',
+      outcomes: ['7000-Tile Kicks & Shockwave Punches', 'Ocean water-bullet throwing', 'Internal moisture impact'],
+    },
+  };
+
+  const defaultDetails = {
+    overview: skill?.description || 'Comprehensive Grand Line skill training designed by verified academy masters.',
+    targetAudience: [
+      'Pirates and learners seeking structured, high-yield skill growth',
+      'Crew members wanting one-on-one mentorship from experienced masters',
+      'Learners aiming to unlock advanced mastery tiers in this category',
+    ],
+    prerequisites: 'Open mindset, basic foundation in the chosen category, and VCT token balance.',
+    outcomes: ['Verified Academy Skill Certificate', '1-on-1 Master Q&A Session', 'Escrow-guaranteed quality'],
+  };
+
+  return audienceMap[category] || defaultDetails;
+}
 
 export default function SkillDetail() {
   const { id } = useParams();
   const { user, refreshUser } = useAuth();
   const qc = useQueryClient();
   const [requestModal, setRequestModal] = useState(null);
+  const [addSlotModal, setAddSlotModal] = useState(null);
 
   const { data: skill, isLoading, error } = useQuery({
     queryKey: ['skill', id],
@@ -25,11 +98,21 @@ export default function SkillDetail() {
     refetchInterval: 12000,
   });
 
+  // Auto-open PurchaseModal when visiting skill detail page
+  const topListing = skill?.listings?.[0] || null;
+  const [autoOpened, setAutoOpened] = useState(false);
+  useEffect(() => {
+    if (topListing && user && user.id !== topListing.providerId && !requestModal && !autoOpened) {
+      setRequestModal(topListing);
+      setAutoOpened(true);
+    }
+  }, [topListing, user, requestModal, autoOpened]);
+
   if (isLoading) return <div className="flex justify-center py-24"><Spinner size={36} /></div>;
   if (error) return <ErrorState message={error.message} />;
   if (!skill) return null;
 
-  const topListing = skill.listings?.[0];
+
   const chartData = history?.map(h => ({
     date: new Date(h.recordedAt).toLocaleDateString([], { month: 'short', day: 'numeric' }),
     price: h.price,
@@ -80,6 +163,57 @@ export default function SkillDetail() {
           </div>
         )}
       </div>
+
+      {/* SKILL OVERVIEW & TARGET AUDIENCE SECTION */}
+      {(() => {
+        const details = getSkillAudienceAndOverview(skill);
+        return (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            
+            {/* Skill Overview Card */}
+            <div className="bg-hull/90 border border-line rounded-2xl p-6 shadow-e1 space-y-4">
+              <div className="flex items-center gap-2 border-b border-line/40 pb-3">
+                <span className="text-2xl">📖</span>
+                <h2 className="font-display text-2xl text-text-primary">Skill Overview & Mastery Guide</h2>
+              </div>
+              <p className="text-text-secondary text-xs sm:text-sm leading-relaxed">
+                {details.overview}
+              </p>
+              <div className="space-y-2 pt-2 border-t border-line/30">
+                <h4 className="text-[11px] font-mono font-bold uppercase text-gold tracking-wider">Key Learning Pillars</h4>
+                <div className="flex flex-wrap gap-2">
+                  {details.outcomes.map((outcome, idx) => (
+                    <span key={idx} className="px-3 py-1 bg-deep rounded-xl text-xs font-semibold text-text-primary border border-line/60 flex items-center gap-1.5">
+                      <span className="text-gold">✓</span>
+                      <span>{outcome}</span>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Who Is This Skill For Card */}
+            <div className="bg-hull/90 border border-line rounded-2xl p-6 shadow-e1 space-y-4">
+              <div className="flex items-center gap-2 border-b border-line/40 pb-3">
+                <span className="text-2xl">🎯</span>
+                <h2 className="font-display text-2xl text-text-primary">Who is this Skill for?</h2>
+              </div>
+              <ul className="space-y-2.5 text-xs sm:text-sm text-text-secondary">
+                {details.targetAudience.map((target, idx) => (
+                  <li key={idx} className="flex items-start gap-2.5">
+                    <span className="text-gold font-bold shrink-0 mt-0.5">⚔️</span>
+                    <span>{target}</span>
+                  </li>
+                ))}
+              </ul>
+              <div className="pt-3 border-t border-line/40 text-xs font-mono space-y-1">
+                <div className="text-text-muted">⚡ <strong className="text-text-primary">Prerequisites:</strong> {details.prerequisites}</div>
+              </div>
+            </div>
+
+          </div>
+        );
+      })()}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left 2 Cols: Charts & Providers */}
@@ -171,14 +305,18 @@ export default function SkillDetail() {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-3">
                     <PriceBadge price={l.currentPrice} basePrice={l.basePrice} multiplier={l.multiplier} />
-                    {user && user.id !== l.providerId && l.slots?.length > 0 && (
+                    {user && user.id !== l.providerId && (
                       <Button onClick={() => setRequestModal(l)}>
-                        Send Vivre Card
+                        Send Vivre Card 📜
                       </Button>
                     )}
-                    {(!l.slots?.length) && <span className="text-text-muted text-xs font-mono">No slots</span>}
+                    {user && user.id === l.providerId && (
+                      <Button variant="secondary" compact onClick={() => setAddSlotModal(l)}>
+                        + Add Slots ({l.slots?.length || 0})
+                      </Button>
+                    )}
                   </div>
                 </div>
               ))}
@@ -209,9 +347,15 @@ export default function SkillDetail() {
               </div>
             </div>
 
-            {topListing && user && user.id !== topListing.providerId && topListing.slots?.length > 0 && (
+            {topListing && user && user.id !== topListing.providerId && (
               <Button className="w-full text-sm font-bold h-12 shadow-glow-gold" onClick={() => setRequestModal(topListing)}>
-                Send Vivre Card ({Number(topListing.currentPrice).toLocaleString()} VCT)
+                Send Vivre Card ({Number(topListing.currentPrice).toLocaleString()} VCT) 📜
+              </Button>
+            )}
+
+            {topListing && user && user.id === topListing.providerId && (
+              <Button className="w-full text-sm font-bold h-12 border border-gold/40 text-gold bg-gold/10 hover:bg-gold/20" onClick={() => setAddSlotModal(topListing)}>
+                + Add Slots to Your Listing ({topListing.slots?.length || 0})
               </Button>
             )}
           </div>
@@ -219,11 +363,17 @@ export default function SkillDetail() {
       </div>
 
       {requestModal && (
-        <RequestModal
+        <PurchaseModal
           listing={requestModal}
-          user={user}
           onClose={() => setRequestModal(null)}
-          onSuccess={() => { setRequestModal(null); qc.invalidateQueries(['skill', id]); refreshUser(); }}
+        />
+      )}
+
+      {addSlotModal && (
+        <AddSlotsModal
+          listing={addSlotModal}
+          onClose={() => setAddSlotModal(null)}
+          onSuccess={() => { setAddSlotModal(null); qc.invalidateQueries({ queryKey: ['skill', id] }); }}
         />
       )}
     </div>

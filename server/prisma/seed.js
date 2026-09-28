@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 
@@ -49,7 +50,17 @@ async function main() {
   console.log('🌊 Seeding Grand Line Skill Exchange...');
 
   // Wipe existing data
-  await prisma.$executeRaw`TRUNCATE price_history, demand_events, transactions, ratings, sessions, session_requests, availability_slots, listings, skills, pricing_config, users RESTART IDENTITY CASCADE`;
+  await prisma.priceHistory.deleteMany();
+  await prisma.demandEvent.deleteMany();
+  await prisma.rating.deleteMany();
+  await prisma.session.deleteMany();
+  await prisma.transaction.deleteMany();
+  await prisma.sessionRequest.deleteMany();
+  await prisma.availabilitySlot.deleteMany();
+  await prisma.listing.deleteMany();
+  await prisma.skill.deleteMany();
+  await prisma.pricingConfig.deleteMany();
+  await prisma.user.deleteMany();
 
   // Skills
   const skills = {};

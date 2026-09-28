@@ -10,6 +10,8 @@ import Sessions from './pages/Sessions.jsx';
 import Wallet from './pages/Wallet.jsx';
 import Profile from './pages/Profile.jsx';
 import MarketDashboard from './pages/MarketDashboard.jsx';
+import PersonalDashboard from './pages/PersonalDashboard.jsx';
+import Classroom from './pages/Classroom.jsx';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -39,6 +41,8 @@ function AppRoutes() {
       <Route path="/" element={<PublicRoute><Landing /></PublicRoute>} />
       <Route element={<PrivateRoute><Layout /></PrivateRoute>}>
         <Route path="market" element={<Market />} />
+        <Route path="my-dashboard" element={<PersonalDashboard />} />
+        <Route path="classroom/:id" element={<Classroom />} />
         <Route path="skills/:id" element={<SkillDetail />} />
         <Route path="requests" element={<Requests />} />
         <Route path="sessions" element={<Sessions />} />

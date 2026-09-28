@@ -18,4 +18,21 @@ router.get('/transactions', authMiddleware, async (req, res, next) => {
   } catch (e) { next(e); }
 });
 
+router.post('/topup', authMiddleware, async (req, res, next) => {
+  try {
+    const amount = Number(req.body.amount) || 500;
+    await prisma.$transaction(async (tx) => {
+      await tx.user.update({
+        where: { id: req.user.id },
+        data: { balance: { increment: amount } },
+      });
+      await tx.transaction.create({
+        data: { userId: req.user.id, type: 'GRANT', amount, note: 'Pirate Bounty Top-Up' },
+      });
+    });
+    const updatedWallet = await getWallet(req.user.id);
+    res.json({ message: `Successfully topped up ${amount} VCT!`, ...updatedWallet });
+  } catch (e) { next(e); }
+});
+
 export default router;

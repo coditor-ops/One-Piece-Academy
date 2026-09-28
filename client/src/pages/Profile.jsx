@@ -32,7 +32,7 @@ export default function Profile() {
   const updateMut = useMutation({
     mutationFn: () => api.put(`/users/${user?.id}`, form),
     onSuccess: () => {
-      qc.invalidateQueries(['auth']);
+      qc.invalidateQueries({ queryKey: ['auth'] });
       refreshUser();
       setEditMode(false);
     },

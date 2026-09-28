@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-// PriceBadge — the hero component
+// PriceBadge - the hero component
 export function PriceBadge({ price, basePrice, multiplier, size = 'md' }) {
   const trend = multiplier >= 1.5 ? 'surge'
     : multiplier >= 1.1 ? 'rising'
@@ -16,7 +16,7 @@ export function PriceBadge({ price, basePrice, multiplier, size = 'md' }) {
     stable:  'text-text-primary',
     falling: 'text-foam',
   };
-  const arrows = { surge: '▲', rising: '▲', stable: '—', falling: '▼' };
+  const arrows = { surge: '▲', rising: '▲', stable: '=', falling: '▼' };
   const sizeClass = size === 'xl' ? 'text-4xl' : 'text-2xl';
 
   return (

@@ -54,11 +54,13 @@ router.post('/login', validate(loginSchema), async (req, res, next) => {
 router.get('/me', authMiddleware, async (req, res, next) => {
   try {
     const user = await prisma.user.findUnique({ where: { id: req.user.id } });
+    if (!user) throw appError('NOT_FOUND', 'User not found', 404);
     res.json(safeUser(user));
   } catch (e) { next(e); }
 });
 
 function safeUser(u) {
+  if (!u) return null;
   const { passwordHash, ...rest } = u;
   return rest;
 }

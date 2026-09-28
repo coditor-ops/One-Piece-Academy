@@ -3,12 +3,12 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mongodb"
   url      = env("DATABASE_URL")
 }
 
 model User {
-  id           String   @id @default(uuid())
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
   name         String
   email        String   @unique
   passwordHash String   @map("password_hash")
@@ -21,7 +21,8 @@ model User {
   createdAt    DateTime @default(now()) @map("created_at")
 
   listings        Listing[]
-  sentRequests    SessionRequest[] @relation("LearnerRequests")
+  sentRequests    SessionRequest[]     @relation("LearnerRequests")
+  customRequests  CustomSkillRequest[]
   transactions    Transaction[]
   ratingsGiven    Rating[]         @relation("RaterRatings")
   ratingsReceived Rating[]         @relation("ProviderRatings")
@@ -30,7 +31,7 @@ model User {
 }
 
 model Skill {
-  id           String  @id @default(uuid())
+  id           String  @id @default(auto()) @map("_id") @db.ObjectId
   name         String  @unique
   category     String
   description  String  @default("")
@@ -44,9 +45,9 @@ model Skill {
 }
 
 model Listing {
-  id           String   @id @default(uuid())
-  providerId   String   @map("provider_id")
-  skillId      String   @map("skill_id")
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  providerId   String   @db.ObjectId @map("provider_id")
+  skillId      String   @db.ObjectId @map("skill_id")
   description  String   @default("")
   level        String   @default("Beginner")
   durationMin  Int      @map("duration_min")
@@ -71,8 +72,8 @@ model Listing {
 }
 
 model AvailabilitySlot {
-  id        String   @id @default(uuid())
-  listingId String   @map("listing_id")
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  listingId String   @db.ObjectId @map("listing_id")
   startAt   DateTime @map("start_at")
   endAt     DateTime @map("end_at")
   isBooked  Boolean  @default(false) @map("is_booked")
@@ -84,10 +85,10 @@ model AvailabilitySlot {
 }
 
 model SessionRequest {
-  id          String   @id @default(uuid())
-  learnerId   String   @map("learner_id")
-  listingId   String   @map("listing_id")
-  slotId      String   @unique @map("slot_id")
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  learnerId   String   @db.ObjectId @map("learner_id")
+  listingId   String   @db.ObjectId @map("listing_id")
+  slotId      String   @unique @db.ObjectId @map("slot_id")
   lockedPrice Int      @map("locked_price")
   status      String   @default("PENDING")
   message     String   @default("")
@@ -106,8 +107,8 @@ model SessionRequest {
 }
 
 model Session {
-  id          String    @id @default(uuid())
-  requestId   String    @unique @map("request_id")
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  requestId   String    @unique @db.ObjectId @map("request_id")
   meetingLink String    @default("") @map("meeting_link")
   providerDone Boolean  @default(false) @map("provider_done")
   completedAt DateTime? @map("completed_at")
@@ -120,10 +121,10 @@ model Session {
 }
 
 model Rating {
-  id         String   @id @default(uuid())
-  sessionId  String   @unique @map("session_id")
-  raterId    String   @map("rater_id")
-  providerId String   @map("provider_id")
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  sessionId  String   @unique @db.ObjectId @map("session_id")
+  raterId    String   @db.ObjectId @map("rater_id")
+  providerId String   @db.ObjectId @map("provider_id")
   score      Int
   review     String   @default("")
   createdAt  DateTime @default(now()) @map("created_at")
@@ -136,11 +137,11 @@ model Rating {
 }
 
 model Transaction {
-  id        String   @id @default(uuid())
-  userId    String   @map("user_id")
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId @map("user_id")
   type      String
   amount    Int
-  requestId String?  @map("request_id")
+  requestId String?  @db.ObjectId @map("request_id")
   note      String   @default("")
   createdAt DateTime @default(now()) @map("created_at")
 
@@ -152,8 +153,8 @@ model Transaction {
 }
 
 model DemandEvent {
-  id        String   @id @default(uuid())
-  skillId   String   @map("skill_id")
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  skillId   String   @db.ObjectId @map("skill_id")
   type      String
   weight    Float    @default(1.0)
   createdAt DateTime @default(now()) @map("created_at")
@@ -165,9 +166,9 @@ model DemandEvent {
 }
 
 model PriceHistory {
-  id         String   @id @default(uuid())
-  listingId  String   @map("listing_id")
-  skillId    String   @map("skill_id")
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  listingId  String   @db.ObjectId @map("listing_id")
+  skillId    String   @db.ObjectId @map("skill_id")
   supply     Int
   demand     Float
   multiplier Float
@@ -182,7 +183,7 @@ model PriceHistory {
 }
 
 model PricingConfig {
-  id      String @id @default("default")
+  id      String @id @map("_id")
   k       Float  @default(0.6)
   alpha   Float  @default(1.0)
   minMult Float  @default(0.7) @map("min_mult")
@@ -192,4 +193,22 @@ model PricingConfig {
   basePriceMax Int @default(1000) @map("base_price_max")
 
   @@map("pricing_config")
+}
+
+model CustomSkillRequest {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId        String   @db.ObjectId @map("user_id")
+  userName      String   @map("user_name")
+  email         String   @default("pratushprasad.5398@gmail.com")
+  skillName     String   @map("skill_name")
+  category      String
+  description   String   @default("")
+  offeredBounty Int      @default(100) @map("offered_bounty")
+  status        String   @default("OPEN")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([status, createdAt])
+  @@map("custom_skill_requests")
 }

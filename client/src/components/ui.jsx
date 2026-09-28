@@ -1,16 +1,21 @@
-// Shared primitives — Button, Card, Badge, Modal, Spinner, VCT display
+// Shared primitives - Button, Card, Badge, Modal, Spinner, VCT display
 
-export function Button({ children, variant = 'primary', className = '', disabled, loading, ...props }) {
+export function Button({ children, variant = 'primary', compact, type = 'button', className = '', disabled, loading, ...props }) {
   const base = 'inline-flex items-center justify-center gap-2 rounded-md font-medium transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-abyss disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed';
+  
   const variants = {
-    primary:   'h-11 px-5 bg-gold text-text-on-gold hover:bg-gold-bright focus:ring-gold active:scale-[0.98] shadow-glow-gold',
-    secondary: 'h-11 px-5 border border-line text-text-primary hover:bg-hull-raised focus:ring-line',
-    danger:    'h-11 px-5 border border-crimson text-crimson hover:bg-crimson hover:text-white focus:ring-crimson',
-    ghost:     'h-9 px-3 text-text-secondary hover:text-text-primary',
-    compact:   'h-9 px-4 bg-gold text-text-on-gold hover:bg-gold-bright focus:ring-gold text-sm',
+    primary:   'bg-gold text-text-on-gold hover:bg-gold-bright focus:ring-gold active:scale-[0.98] shadow-glow-gold',
+    secondary: 'border border-line text-text-primary hover:bg-hull-raised focus:ring-line',
+    danger:    'border border-crimson text-crimson hover:bg-crimson hover:text-white focus:ring-crimson',
+    ghost:     'text-text-secondary hover:text-text-primary',
   };
+  
+  const sizeClass = compact ? 'h-9 px-4 text-sm' : 'h-11 px-5';
+  const ghostSize = compact ? 'h-8 px-2 text-xs' : 'h-9 px-3';
+  const finalSize = variant === 'ghost' ? ghostSize : sizeClass;
+
   return (
-    <button className={`${base} ${variants[variant]} ${className}`} disabled={disabled || loading} {...props}>
+    <button type={type} className={`${base} ${variants[variant] || variants.primary} ${finalSize} ${className}`} disabled={disabled || loading} {...props}>
       {loading && <Spinner size={16} />}
       {children}
     </button>

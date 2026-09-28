@@ -17,11 +17,11 @@ export default function Sessions() {
 
   const markDone = useMutation({
     mutationFn: id => api.post(`/sessions/${id}/complete`),
-    onSuccess: () => qc.invalidateQueries(['sessions']),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['sessions'] }),
   });
   const confirm = useMutation({
     mutationFn: id => api.post(`/sessions/${id}/confirm`),
-    onSuccess: () => { qc.invalidateQueries(['sessions']); refreshUser(); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['sessions'] }); refreshUser(); },
   });
 
   if (isLoading) return <div className="flex justify-center py-16"><Spinner size={32} /></div>;
@@ -79,7 +79,7 @@ export default function Sessions() {
       </div>
 
       {ratingModal && (
-        <RatingModal session={ratingModal} onClose={() => setRatingModal(null)} onSuccess={() => { setRatingModal(null); qc.invalidateQueries(['sessions']); }} />
+        <RatingModal session={ratingModal} onClose={() => setRatingModal(null)} onSuccess={() => { setRatingModal(null); qc.invalidateQueries({ queryKey: ['sessions'] }); }} />
       )}
     </div>
   );

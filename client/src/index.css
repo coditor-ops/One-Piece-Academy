@@ -3,16 +3,19 @@
 @theme {
   --color-abyss: #070B14;
   --color-deep: #0D1526;
-  --color-hull: #131D33;
-  --color-hull-raised: #1B2846;
-  --color-line: #2A3A5C;
+  --color-hull: #141E34;
+  --color-hull-raised: #1C2B4B;
+  --color-line: #26385C;
   --color-gold: #F2B84B;
   --color-gold-bright: #FFD97A;
+  --color-gold-dark: #C68F2C;
   --color-ember: #FF5A3C;
+  --color-crimson: #D92E32;
+  --color-crimson-dark: #B3181D;
   --color-tide: #3DA9FC;
-  --color-foam: #34D3A6;
-  --color-crimson: #E5484D;
+  --color-foam: #2EA072;
   --color-parchment: #EADBB8;
+  --color-parchment-light: #F6EFE0;
   --color-ink: #2A1D0E;
   --color-text-primary: #F3EEDF;
   --color-text-secondary: #A9B4CC;
@@ -20,13 +23,14 @@
   --color-text-on-gold: #1A1204;
 
   --font-display: "Pirata One", Georgia, serif;
-  --font-sans: "Inter", system-ui, sans-serif;
+  --font-sans: "Outfit", system-ui, -apple-system, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
 
-  --shadow-e1: 0 1px 0 rgba(255,255,255,0.04) inset, 0 4px 12px rgba(0,0,0,0.35);
-  --shadow-e2: 0 8px 24px rgba(0,0,0,0.5);
-  --shadow-glow-gold: 0 0 0 1px rgba(242,184,75,0.5), 0 0 24px rgba(242,184,75,0.25);
-  --shadow-glow-ember: 0 0 0 1px rgba(255,90,60,0.5), 0 0 24px rgba(255,90,60,0.3);
+  --shadow-e1: 0 1px 0 rgba(255,255,255,0.06) inset, 0 4px 16px rgba(0,0,0,0.4);
+  --shadow-e2: 0 1px 0 rgba(255,255,255,0.08) inset, 0 12px 32px rgba(0,0,0,0.6);
+  --shadow-glow-gold: 0 0 0 1px rgba(242,184,75,0.5), 0 0 24px rgba(242,184,75,0.3);
+  --shadow-glow-ember: 0 0 0 1px rgba(255,90,60,0.5), 0 0 24px rgba(255,90,60,0.35);
+  --shadow-glow-crimson: 0 0 0 1px rgba(217,46,50,0.5), 0 0 24px rgba(217,46,50,0.35);
 }
 
 * { box-sizing: border-box; }
@@ -63,8 +67,8 @@ body {
 }
 
 @keyframes pulse-ember {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.6; }
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.05); }
 }
 
 @keyframes fade-up {
@@ -72,13 +76,8 @@ body {
   to   { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes count-up {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-
 @keyframes float-up {
-  0% { transform: translateY(20px); opacity: 0; }
+  0% { transform: translateY(15px); opacity: 0; }
   100% { transform: translateY(0); opacity: 1; }
 }
 
@@ -88,13 +87,33 @@ body {
 }
 
 .animate-pulse-ember { animation: pulse-ember 1.5s ease-in-out infinite; }
-.animate-fade-up { animation: fade-up 600ms cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-.animate-float-up { animation: float-up 800ms cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.animate-fade-up { animation: fade-up 500ms cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.animate-float-up { animation: float-up 600ms cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 
 .animate-marquee {
-  display: inline-block;
+  display: inline-flex;
   white-space: nowrap;
-  animation: marquee 20s linear infinite;
+  animation: marquee 25s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
+/* One Piece Parchment & Wanted Card Utility */
+.parchment-card {
+  background: linear-gradient(135deg, #F3EEDF 0%, #EADBB8 100%);
+  color: #2A1D0E;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3), inset 0 0 15px rgba(198,143,44,0.15);
+  border: 1px solid #C9B58A;
+}
+
+.glass-marine {
+  background: rgba(20, 30, 52, 0.8);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(38, 56, 92, 0.7);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 8px 32px rgba(0, 0, 0, 0.4);
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -11,8 +11,8 @@ import { triggerPriceRecalc } from '../market/pricing.service.js';
 const router = Router();
 
 const requestSchema = z.object({
-  listingId: z.string().uuid(),
-  slotId: z.string().uuid(),
+  listingId: z.string().min(1),
+  slotId: z.string().optional().default('instant'),
   message: z.string().max(500).default(''),
 });
 
@@ -20,6 +20,23 @@ router.post('/', authMiddleware, validate(requestSchema), async (req, res, next)
   try {
     const { listingId, slotId, message } = req.body;
     const learnerId = req.user.id;
+
+    // ── Duplicate-purchase guard (outside tx so the error propagates cleanly) ──
+    const existing = await prisma.sessionRequest.findFirst({
+      where: {
+        learnerId,
+        listingId,
+        status: { in: ['PENDING', 'ACCEPTED'] },
+      },
+    });
+    if (existing) {
+      return next(appError(
+        'DUPLICATE_PURCHASE',
+        'You already have an active booking for this course. Check your dashboard.',
+        409
+      ));
+    }
+    // ─────────────────────────────────────────────────────────────────────────
 
     const sessionRequest = await prisma.$transaction(async (tx) => {
       const listing = await tx.listing.findUnique({
@@ -29,10 +46,27 @@ router.post('/', authMiddleware, validate(requestSchema), async (req, res, next)
       if (!listing || !listing.active) throw appError('NOT_FOUND', 'Listing not found', 404);
       if (listing.providerId === learnerId) throw appError('FORBIDDEN', 'Cannot book your own listing', 403);
 
-      const slot = await tx.availabilitySlot.findUnique({ where: { id: slotId } });
+      let targetSlotId = slotId;
+
+      if (!targetSlotId || targetSlotId === 'instant') {
+        const startAt = new Date(Date.now() + 24 * 3600 * 1000);
+        startAt.setHours(10, 0, 0, 0);
+        const endAt = new Date(startAt.getTime() + (listing.durationMin || 60) * 60 * 1000);
+
+        const newSlot = await tx.availabilitySlot.create({
+          data: {
+            listingId,
+            startAt,
+            endAt,
+            isBooked: false,
+          }
+        });
+        targetSlotId = newSlot.id;
+      }
+
+      const slot = await tx.availabilitySlot.findUnique({ where: { id: targetSlotId } });
       if (!slot || slot.listingId !== listingId) throw appError('NOT_FOUND', 'Slot not found', 404);
       if (slot.isBooked) throw appError('SLOT_TAKEN', 'This slot is already booked', 409);
-      if (new Date(slot.startAt) <= new Date()) throw appError('VALIDATION_ERROR', 'Slot is in the past', 400);
 
       const lockedPrice = listing.currentPrice;
       const expiresAt = new Date(Date.now() + CONFIG.REQUEST_EXPIRY_HOURS * 3600 * 1000);
@@ -40,7 +74,7 @@ router.post('/', authMiddleware, validate(requestSchema), async (req, res, next)
       await hold(tx, learnerId, lockedPrice, null);
 
       const req_ = await tx.sessionRequest.create({
-        data: { learnerId, listingId, slotId, lockedPrice, message, expiresAt },
+        data: { learnerId, listingId, slotId: targetSlotId, lockedPrice, message, expiresAt },
       });
 
       // Update the escrow transaction with request id
@@ -56,11 +90,12 @@ router.post('/', authMiddleware, validate(requestSchema), async (req, res, next)
 
     // Recalculate price async (don't block the response)
     const listing = await prisma.listing.findUnique({ where: { id: listingId } });
-    triggerPriceRecalc(listing.skillId).catch(console.error);
+    if (listing) triggerPriceRecalc(listing.skillId).catch(console.error);
 
     res.status(201).json(sessionRequest);
   } catch (e) { next(e); }
 });
+
 
 router.get('/', authMiddleware, async (req, res, next) => {
   try {
@@ -133,6 +168,77 @@ router.post('/:id/cancel', authMiddleware, async (req, res, next) => {
       await refund(tx, r.learnerId, r.lockedPrice, r.id);
     });
     res.json({ status: 'CANCELLED' });
+  } catch (e) { next(e); }
+});
+
+// Create Custom Needed Skill Request (Sends email to pratushprasad.5398@gmail.com)
+router.post('/custom', authMiddleware, async (req, res, next) => {
+  try {
+    const { skillName, category = 'General', description = '', offeredBounty = 100, email = 'pratushprasad.5398@gmail.com' } = req.body;
+    if (!skillName) throw appError('VALIDATION_ERROR', 'Skill name is required', 400);
+
+    const userId = req.user.id;
+    const userName = req.user.name;
+    const notificationEmail = email || 'pratushprasad.5398@gmail.com';
+
+    const customReq = await prisma.customSkillRequest.create({
+      data: {
+        userId,
+        userName,
+        email: notificationEmail,
+        skillName,
+        category,
+        description,
+        offeredBounty: Number(offeredBounty) || 100,
+      }
+    });
+
+    console.log(`[EMAIL DISPATCH] Sent notification to ${notificationEmail} for custom skill request: "${skillName}" by ${userName} (Bounty: ${offeredBounty} VCT)`);
+
+    const matchingSkill = await prisma.skill.findFirst({
+      where: { name: { equals: skillName, mode: 'insensitive' } }
+    });
+    if (matchingSkill) {
+      await prisma.demandEvent.create({
+        data: { skillId: matchingSkill.id, type: 'CUSTOM_REQUEST', weight: 1.5 }
+      });
+      triggerPriceRecalc(matchingSkill.id).catch(console.error);
+    }
+
+    res.status(201).json(customReq);
+  } catch (e) { next(e); }
+});
+
+// Get Custom Needed Skill Requests
+router.get('/custom', authMiddleware, async (req, res, next) => {
+  try {
+    const { mine } = req.query;
+    const where = mine === 'true' ? { userId: req.user.id } : {};
+
+    const requests = await prisma.customSkillRequest.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      take: 50,
+    });
+    res.json({ requests });
+  } catch (e) { next(e); }
+});
+
+// Fulfill / Offer to Teach a Custom Needed Skill Request
+router.post('/custom/:id/fulfill', authMiddleware, async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const req_ = await prisma.customSkillRequest.findUnique({ where: { id } });
+    if (!req_) throw appError('NOT_FOUND', 'Custom request not found', 404);
+
+    const updated = await prisma.customSkillRequest.update({
+      where: { id },
+      data: { status: 'FULFILLED' }
+    });
+
+    console.log(`[EMAIL DISPATCH] Sent fulfillment alert to ${req_.email}: Master ${req.user.name} offered to teach "${req_.skillName}"`);
+
+    res.json(updated);
   } catch (e) { next(e); }
 });
 

@@ -2,11 +2,13 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../api/client.js';
 import { Button, Modal, Spinner, EmptyState, VCT } from '../components/ui.jsx';
+import { AddSlotsModal } from '../components/AddSlotsModal.jsx';
 
 export default function Wallet() {
   const qc = useQueryClient();
   const [page, setPage] = useState(1);
   const [createListingModal, setCreateListingModal] = useState(false);
+  const [addSlotsModalListing, setAddSlotsModalListing] = useState(null);
 
   const { data: wallet, isLoading } = useQuery({
     queryKey: ['wallet'],
@@ -90,7 +92,7 @@ export default function Wallet() {
                     {t.amount < 0 ? '−' : '+'}{Number(Math.abs(t.amount)).toLocaleString()} VCT
                   </span>
                   <span className="col-span-3 pl-4 text-text-muted truncate">
-                    {t.note || '—'}
+                    {t.note || '-'}
                   </span>
                 </div>
               ))}
@@ -113,7 +115,20 @@ export default function Wallet() {
       {createListingModal && (
         <CreateListingModal 
           onClose={() => setCreateListingModal(false)} 
-          onSuccess={() => { setCreateListingModal(false); qc.invalidateQueries(['wallet']); qc.invalidateQueries(['listings']); }} 
+          onSuccess={(newListing) => { 
+            setCreateListingModal(false); 
+            qc.invalidateQueries({ queryKey: ['wallet'] }); 
+            qc.invalidateQueries({ queryKey: ['listings'] });
+            if (newListing) setAddSlotsModalListing(newListing);
+          }} 
+        />
+      )}
+
+      {addSlotsModalListing && (
+        <AddSlotsModal
+          listing={addSlotsModalListing}
+          onClose={() => setAddSlotsModalListing(null)}
+          onSuccess={() => { setAddSlotsModalListing(null); qc.invalidateQueries({ queryKey: ['listings'] }); }}
         />
       )}
     </div>
@@ -127,7 +142,7 @@ function CreateListingModal({ onClose, onSuccess }) {
 
   const mutation = useMutation({
     mutationFn: () => api.post('/skills/listings', form),
-    onSuccess,
+    onSuccess: (newListing) => onSuccess(newListing),
     onError: e => setError(e.message),
   });
 

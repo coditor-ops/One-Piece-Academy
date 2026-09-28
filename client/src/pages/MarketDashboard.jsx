@@ -20,14 +20,14 @@ export default function MarketDashboard() {
 
   const updateConfig = useMutation({
     mutationFn: (data) => api.put('/market/admin/pricing-config', data),
-    onSuccess: () => qc.invalidateQueries(['pricing-config']),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['pricing-config'] }),
   });
 
   const simulateRush = useMutation({
     mutationFn: (skillId) => api.post('/market/admin/simulate-rush', { skillId, count: 15 }),
     onSuccess: () => {
-      qc.invalidateQueries(['market-overview']);
-      qc.invalidateQueries(['listings']);
+      qc.invalidateQueries({ queryKey: ['market-overview'] });
+      qc.invalidateQueries({ queryKey: ['listings'] });
     },
   });
 

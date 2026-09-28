@@ -8,61 +8,10 @@ import { CONFIG } from '../../config.js';
 
 const router = Router();
 
-// Public — list all skills
-router.get('/', async (req, res, next) => {
-  try {
-    const skills = await prisma.skill.findMany({ orderBy: { name: 'asc' } });
-    res.json(skills);
-  } catch (e) { next(e); }
-});
-
-router.get('/:id', async (req, res, next) => {
-  try {
-    const skill = await prisma.skill.findUnique({
-      where: { id: req.params.id },
-      include: {
-        listings: {
-          where: { active: true },
-          include: {
-            provider: { select: { id: true, name: true, tier: true, avatar: true } },
-            slots: { where: { isBooked: false, startAt: { gte: new Date() } }, orderBy: { startAt: 'asc' }, take: 3 },
-          },
-        },
-      },
-    });
-    if (!skill) throw appError('NOT_FOUND', 'Skill not found', 404);
-    res.json(skill);
-  } catch (e) { next(e); }
-});
-
-// Listings
-const listingSchema = z.object({
-  skillId: z.string().uuid(),
-  description: z.string().max(1000).default(''),
-  level: z.enum(['Beginner', 'Intermediate', 'Advanced', 'Master']).default('Beginner'),
-  durationMin: z.number().int().refine(v => [30, 60, 90].includes(v), 'Duration must be 30, 60, or 90'),
-  basePrice: z.number().int().min(CONFIG.BASE_PRICE_MIN).max(CONFIG.BASE_PRICE_MAX),
-});
-
-router.post('/listings', authMiddleware, validate(listingSchema), async (req, res, next) => {
-  try {
-    const { skillId, description, level, durationMin, basePrice } = req.body;
-    const providerId = req.user.id;
-
-    const existing = await prisma.listing.findFirst({ where: { providerId, skillId, active: true } });
-    if (existing) throw appError('DUPLICATE_LISTING', 'You already have an active listing for this skill', 409);
-
-    const listing = await prisma.listing.create({
-      data: { providerId, skillId, description, level, durationMin, basePrice, currentPrice: basePrice },
-    });
-    res.status(201).json(listing);
-  } catch (e) { next(e); }
-});
-
-// Public listing search
+// Public listing search (MUST BE DECLARED BEFORE /:id)
 router.get('/listings', async (req, res, next) => {
   try {
-    const { q, category, minRating, minPrice, maxPrice, demand, sort, page = 1, limit = 20 } = req.query;
+    const { q, category, minRating, minPrice, maxPrice, sort, page = 1, limit = 20 } = req.query;
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
     const where = {
@@ -95,6 +44,30 @@ router.get('/listings', async (req, res, next) => {
       prisma.listing.count({ where }),
     ]);
     res.json({ listings, total, page: parseInt(page), limit: parseInt(limit) });
+  } catch (e) { next(e); }
+});
+
+// Listings validation schema
+const listingSchema = z.object({
+  skillId: z.string().min(1),
+  description: z.string().max(1000).default(''),
+  level: z.enum(['Beginner', 'Intermediate', 'Advanced', 'Master']).default('Beginner'),
+  durationMin: z.number().int().refine(v => [30, 60, 90].includes(v), 'Duration must be 30, 60, or 90'),
+  basePrice: z.number().int().min(CONFIG.BASE_PRICE_MIN).max(CONFIG.BASE_PRICE_MAX),
+});
+
+router.post('/listings', authMiddleware, validate(listingSchema), async (req, res, next) => {
+  try {
+    const { skillId, description, level, durationMin, basePrice } = req.body;
+    const providerId = req.user.id;
+
+    const existing = await prisma.listing.findFirst({ where: { providerId, skillId, active: true } });
+    if (existing) throw appError('DUPLICATE_LISTING', 'You already have an active listing for this skill', 409);
+
+    const listing = await prisma.listing.create({
+      data: { providerId, skillId, description, level, durationMin, basePrice, currentPrice: basePrice },
+    });
+    res.status(201).json(listing);
   } catch (e) { next(e); }
 });
 
@@ -138,6 +111,34 @@ router.post('/listings/:id/slots', authMiddleware, validate(slotSchema), async (
       data: slots.map(s => ({ listingId: req.params.id, startAt: new Date(s.startAt), endAt: new Date(s.endAt) })),
     });
     res.status(201).json({ created: created.count });
+  } catch (e) { next(e); }
+});
+
+// Public — list all skills
+router.get('/', async (req, res, next) => {
+  try {
+    const skills = await prisma.skill.findMany({ orderBy: { name: 'asc' } });
+    res.json(skills);
+  } catch (e) { next(e); }
+});
+
+// Specific skill detail by ID
+router.get('/:id', async (req, res, next) => {
+  try {
+    const skill = await prisma.skill.findUnique({
+      where: { id: req.params.id },
+      include: {
+        listings: {
+          where: { active: true },
+          include: {
+            provider: { select: { id: true, name: true, tier: true, avatar: true } },
+            slots: { where: { isBooked: false, startAt: { gte: new Date() } }, orderBy: { startAt: 'asc' }, take: 3 },
+          },
+        },
+      },
+    });
+    if (!skill) throw appError('NOT_FOUND', 'Skill not found', 404);
+    res.json(skill);
   } catch (e) { next(e); }
 });
 
