@@ -25,7 +25,7 @@ export function BountyPosterCard({ listing, onBook, onOpenOverview }) {
       whileHover={{ y: -6, scale: 1.015 }}
       whileTap={{ scale: 0.985 }}
       transition={{ type: 'spring', stiffness: 260, damping: 20 }}
-      className={`group relative bg-[#141E34]/90 backdrop-blur-xl border rounded-2xl p-5 flex flex-col justify-between overflow-hidden shadow-e1 hover:shadow-e2 transition-all duration-300 ${
+      className={`group relative bg-[#141E34]/30 backdrop-blur-md border rounded-2xl p-5 flex flex-col justify-between overflow-hidden shadow-e1 hover:shadow-e2 transition-all duration-300 ${
         isSurging 
           ? 'border-crimson/60 hover:border-crimson shadow-[0_0_25px_rgba(217,46,50,0.2)]' 
           : isRising 
@@ -35,7 +35,7 @@ export function BountyPosterCard({ listing, onBook, onOpenOverview }) {
     >
       {/* Top Banner Tag & Bounty Label */}
       <div className="flex items-center justify-between gap-2 mb-3">
-        <span className="text-[10px] uppercase tracking-widest font-mono font-bold px-3 py-1 rounded-full bg-deep/90 text-gold border border-gold/30">
+        <span className="text-[10px] uppercase tracking-widest font-mono font-bold px-3 py-1 rounded-full bg-deep/40 text-gold border border-gold/30">
           {listing.skill?.category || 'Grand Line Skill'}
         </span>
         {isSurging ? (
@@ -52,7 +52,7 @@ export function BountyPosterCard({ listing, onBook, onOpenOverview }) {
       {/* Main Content & Icon */}
       <div className="mb-4">
         <div className="flex items-start gap-3.5 mb-2 cursor-pointer" onClick={handleOpenOverview}>
-          <span className="text-3xl p-2.5 rounded-2xl bg-deep/90 border border-line/60 group-hover:scale-110 transition-transform duration-300 shadow-inner shrink-0">
+          <span className="text-3xl p-2.5 rounded-2xl bg-deep/40 border border-line/60 group-hover:scale-110 transition-transform duration-300 shadow-inner shrink-0">
             {listing.skill?.icon || '⚔️'}
           </span>
           <div>

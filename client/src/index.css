@@ -1,5 +1,29 @@
 @import "tailwindcss";
 
+@font-face {
+  font-family: 'Masky';
+  src: url('/fonts/masky.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Retro Gramophone';
+  src: url('/fonts/retro-gramophone.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Veloria';
+  src: url('/fonts/veloria.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 @theme {
   --color-abyss: #070B14;
   --color-deep: #0D1526;
@@ -22,9 +46,10 @@
   --color-text-muted: #6F7C99;
   --color-text-on-gold: #1A1204;
 
-  --font-display: "Pirata One", Georgia, serif;
-  --font-sans: "Outfit", system-ui, -apple-system, sans-serif;
+  --font-display: "Masky", Georgia, serif;
+  --font-sans: "Retro Gramophone", system-ui, -apple-system, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --font-label: "Veloria", sans-serif;
 
   --shadow-e1: 0 1px 0 rgba(255,255,255,0.06) inset, 0 4px 16px rgba(0,0,0,0.4);
   --shadow-e2: 0 1px 0 rgba(255,255,255,0.08) inset, 0 12px 32px rgba(0,0,0,0.6);
@@ -41,6 +66,10 @@ body {
   font-family: var(--font-sans);
   margin: 0;
   overscroll-behavior-y: none;
+}
+
+label, .label-text {
+  font-family: var(--font-label);
 }
 
 ::selection {
