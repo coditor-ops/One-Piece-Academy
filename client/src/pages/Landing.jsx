@@ -244,7 +244,7 @@ export default function Landing() {
       {/* 
         FLOATING CYLINDRICAL GLASSMORPHISM NAVBAR (Double-Bezel Architecture)
       */}
-      <header className="sticky top-6 z-50 px-4 sm:px-6 w-full max-w-[1440px] mx-auto pointer-events-none mb-12">
+      <header className="sticky top-6 z-50 px-4 sm:px-8 w-full max-w-[1920px] mx-auto pointer-events-none mb-12">
         {/* Outer Shell */}
         <div className="pointer-events-auto bg-white/[0.02] p-1.5 rounded-[2.5rem] border border-white/10 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.8)] backdrop-blur-md">
           {/* Inner Core */}
@@ -373,7 +373,7 @@ export default function Landing() {
       {/* 
         HERO SECTION
       */}
-      <section className="relative z-10 w-full max-w-[1440px] mx-auto px-4 sm:px-6 pt-8 pb-16">
+      <section className="relative z-10 w-full max-w-[1920px] mx-auto px-4 sm:px-8 pt-8 pb-16">
         
         {/* Parchment Pill Tag */}
         <div className="inline-flex items-center gap-2 bg-[#EADBB8] text-[#2A1D0E] px-4 py-1.5 rounded-md font-mono text-xs font-black tracking-widest mb-6 shadow-lg border border-[#C9B58A]">
@@ -393,7 +393,7 @@ export default function Landing() {
             A <span className="text-crimson font-black drop-shadow-[0_0_35px_rgba(229,72,77,0.85)]">Bigger</span> Tomorrow
           </h1>
 
-          <p className="text-text-primary text-base sm:text-xl max-w-2xl font-medium mb-8 leading-relaxed drop-shadow-[0_2px_12px_rgba(0,0,0,0.95)] bg-[#070B14]/60 backdrop-blur-md p-4 rounded-2xl border border-white/10 shadow-2xl">
+          <p className="text-text-primary text-lg sm:text-2xl max-w-3xl font-medium mb-8 leading-relaxed drop-shadow-[0_2px_12px_rgba(0,0,0,0.95)] bg-[#070B14]/60 backdrop-blur-md p-4 rounded-2xl border border-white/10 shadow-2xl">
             A peer-to-peer skill marketplace where every talent finds its crew. Learn from masters, share your skills, and trade knowledge with <strong className="text-gold">Vivre Card Tokens</strong>.
           </p>
         </motion.div>
@@ -548,7 +548,7 @@ export default function Landing() {
       {/* 
         INTERACTIVE DEMAND PRICING SIMULATOR SECTION
       */}
-      <section className="relative z-10 w-full py-20 px-4 sm:px-6 max-w-[1440px] mx-auto border-t border-white/10 bg-[#070B14]/65 backdrop-blur-2xl rounded-3xl my-10 shadow-2xl">
+      <section className="relative z-10 w-full py-20 px-4 sm:px-8 max-w-[1920px] mx-auto border-t border-white/10 bg-[#070B14]/65 backdrop-blur-2xl rounded-3xl my-10 shadow-2xl">
         <div className="text-center mb-10">
           <span className="text-gold text-xs font-mono font-semibold uppercase tracking-widest block mb-1">
             Dynamic Economy Engine

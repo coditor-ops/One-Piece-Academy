@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Outlet, NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { Outlet, NavLink, useLocation, useNavigate, useOutlet } from 'react-router-dom';
+import { AnimatePresence, motion } from 'framer-motion';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../context/AuthContext.jsx';
 import { Button, Modal } from '../components/ui.jsx';
@@ -9,6 +10,7 @@ export default function Layout() {
   const { user, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+  const currentOutlet = useOutlet();
   const qc = useQueryClient();
   const [showRushModal, setShowRushModal] = useState(false);
   const [rushSkillId, setRushSkillId] = useState('');
@@ -66,7 +68,7 @@ export default function Layout() {
         FLOATING CYLINDRICAL GLASSMORPHISM NAVBAR
         Rounded capsule structure with backdrop blur, edge refraction, and inner highlights.
       */}
-      <header className="sticky top-4 z-50 px-4 sm:px-6 w-full max-w-[1440px] mx-auto pointer-events-none mb-4">
+      <header className="sticky top-4 z-50 px-4 sm:px-8 w-full max-w-[1920px] mx-auto pointer-events-none mb-4">
         <div className="pointer-events-auto bg-[#0D1526]/80 backdrop-blur-2xl border border-white/15 rounded-full px-4 sm:px-7 py-3 flex items-center justify-between shadow-[0_16px_40px_rgba(0,0,0,0.6),_inset_0_1px_0_rgba(255,255,255,0.2)] ring-1 ring-gold/20 transition-all duration-300">
           
           {/* Brand Logo & Title */}
@@ -169,8 +171,19 @@ export default function Layout() {
       </header>
 
       {/* Main Container */}
-      <main className="flex-1 w-full max-w-[1440px] mx-auto px-4 sm:px-6 py-4">
-        <Outlet />
+      <main className="flex-1 w-full max-w-[1920px] mx-auto px-4 sm:px-8 py-4 flex flex-col">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={location.pathname}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+            className="flex-1 w-full h-full flex flex-col"
+          >
+            {currentOutlet}
+          </motion.div>
+        </AnimatePresence>
       </main>
 
       {/* Footer */}

@@ -88,7 +88,7 @@ export default function Market() {
   const mentors = Array.from(mentorsMap.values());
 
   return (
-    <div className="max-w-[1400px] mx-auto space-y-8">
+    <div className="w-full space-y-8">
       
       {/* Cinematic Hero - Scrub Animation */}
       {user && <MarketHero />}
