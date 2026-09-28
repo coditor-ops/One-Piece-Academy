@@ -1,0 +1,102 @@
+@import "tailwindcss";
+
+@theme {
+  --color-abyss: #070B14;
+  --color-deep: #0D1526;
+  --color-hull: #131D33;
+  --color-hull-raised: #1B2846;
+  --color-line: #2A3A5C;
+  --color-gold: #F2B84B;
+  --color-gold-bright: #FFD97A;
+  --color-ember: #FF5A3C;
+  --color-tide: #3DA9FC;
+  --color-foam: #34D3A6;
+  --color-crimson: #E5484D;
+  --color-parchment: #EADBB8;
+  --color-ink: #2A1D0E;
+  --color-text-primary: #F3EEDF;
+  --color-text-secondary: #A9B4CC;
+  --color-text-muted: #6F7C99;
+  --color-text-on-gold: #1A1204;
+
+  --font-display: "Pirata One", Georgia, serif;
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  --shadow-e1: 0 1px 0 rgba(255,255,255,0.04) inset, 0 4px 12px rgba(0,0,0,0.35);
+  --shadow-e2: 0 8px 24px rgba(0,0,0,0.5);
+  --shadow-glow-gold: 0 0 0 1px rgba(242,184,75,0.5), 0 0 24px rgba(242,184,75,0.25);
+  --shadow-glow-ember: 0 0 0 1px rgba(255,90,60,0.5), 0 0 24px rgba(255,90,60,0.3);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  background-color: var(--color-abyss);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+  margin: 0;
+  overscroll-behavior-y: none;
+}
+
+::selection {
+  background-color: var(--color-gold);
+  color: var(--color-text-on-gold);
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-abyss);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-line);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-muted);
+}
+
+@keyframes pulse-ember {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes count-up {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes float-up {
+  0% { transform: translateY(20px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-pulse-ember { animation: pulse-ember 1.5s ease-in-out infinite; }
+.animate-fade-up { animation: fade-up 600ms cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.animate-float-up { animation: float-up 800ms cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+.animate-marquee {
+  display: inline-block;
+  white-space: nowrap;
+  animation: marquee 20s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-pulse-ember, .animate-fade-up, .animate-float-up, .animate-marquee { animation: none; }
+}

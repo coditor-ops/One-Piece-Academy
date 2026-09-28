@@ -1,0 +1,195 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(uuid())
+  name         String
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  bio          String   @default("")
+  avatar       String   @default("")
+  crew         String   @default("")
+  tier         String   @default("Rookie")
+  balance      Int      @default(0)
+  escrowHeld   Int      @default(0) @map("escrow_held")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  listings        Listing[]
+  sentRequests    SessionRequest[] @relation("LearnerRequests")
+  transactions    Transaction[]
+  ratingsGiven    Rating[]         @relation("RaterRatings")
+  ratingsReceived Rating[]         @relation("ProviderRatings")
+
+  @@map("users")
+}
+
+model Skill {
+  id           String  @id @default(uuid())
+  name         String  @unique
+  category     String
+  description  String  @default("")
+  icon         String  @default("")
+
+  listings     Listing[]
+  demandEvents DemandEvent[]
+  priceHistory PriceHistory[]
+
+  @@map("skills")
+}
+
+model Listing {
+  id           String   @id @default(uuid())
+  providerId   String   @map("provider_id")
+  skillId      String   @map("skill_id")
+  description  String   @default("")
+  level        String   @default("Beginner")
+  durationMin  Int      @map("duration_min")
+  basePrice    Int      @map("base_price")
+  currentPrice Int      @map("current_price")
+  multiplier   Float    @default(1.0)
+  avgRating    Float    @default(0) @map("avg_rating")
+  ratingCount  Int      @default(0) @map("rating_count")
+  sessionsCompleted Int @default(0) @map("sessions_completed")
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  provider         User              @relation(fields: [providerId], references: [id])
+  skill            Skill             @relation(fields: [skillId], references: [id])
+  slots            AvailabilitySlot[]
+  requests         SessionRequest[]
+  priceHistory     PriceHistory[]
+
+  @@unique([providerId, skillId, active])
+  @@index([skillId, active])
+  @@map("listings")
+}
+
+model AvailabilitySlot {
+  id        String   @id @default(uuid())
+  listingId String   @map("listing_id")
+  startAt   DateTime @map("start_at")
+  endAt     DateTime @map("end_at")
+  isBooked  Boolean  @default(false) @map("is_booked")
+
+  listing  Listing         @relation(fields: [listingId], references: [id])
+  request  SessionRequest?
+
+  @@map("availability_slots")
+}
+
+model SessionRequest {
+  id          String   @id @default(uuid())
+  learnerId   String   @map("learner_id")
+  listingId   String   @map("listing_id")
+  slotId      String   @unique @map("slot_id")
+  lockedPrice Int      @map("locked_price")
+  status      String   @default("PENDING")
+  message     String   @default("")
+  createdAt   DateTime @default(now()) @map("created_at")
+  expiresAt   DateTime @map("expires_at")
+
+  learner      User              @relation("LearnerRequests", fields: [learnerId], references: [id])
+  listing      Listing           @relation(fields: [listingId], references: [id])
+  slot         AvailabilitySlot  @relation(fields: [slotId], references: [id])
+  session      Session?
+  transactions Transaction[]
+
+  @@index([listingId, status])
+  @@index([learnerId, status])
+  @@map("session_requests")
+}
+
+model Session {
+  id          String    @id @default(uuid())
+  requestId   String    @unique @map("request_id")
+  meetingLink String    @default("") @map("meeting_link")
+  providerDone Boolean  @default(false) @map("provider_done")
+  completedAt DateTime? @map("completed_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  request SessionRequest @relation(fields: [requestId], references: [id])
+  rating  Rating?
+
+  @@map("sessions")
+}
+
+model Rating {
+  id         String   @id @default(uuid())
+  sessionId  String   @unique @map("session_id")
+  raterId    String   @map("rater_id")
+  providerId String   @map("provider_id")
+  score      Int
+  review     String   @default("")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  session  Session @relation(fields: [sessionId], references: [id])
+  rater    User    @relation("RaterRatings", fields: [raterId], references: [id])
+  provider User    @relation("ProviderRatings", fields: [providerId], references: [id])
+
+  @@map("ratings")
+}
+
+model Transaction {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  type      String
+  amount    Int
+  requestId String?  @map("request_id")
+  note      String   @default("")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user    User            @relation(fields: [userId], references: [id])
+  request SessionRequest? @relation(fields: [requestId], references: [id])
+
+  @@index([userId])
+  @@map("transactions")
+}
+
+model DemandEvent {
+  id        String   @id @default(uuid())
+  skillId   String   @map("skill_id")
+  type      String
+  weight    Float    @default(1.0)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  skill Skill @relation(fields: [skillId], references: [id])
+
+  @@index([skillId, createdAt])
+  @@map("demand_events")
+}
+
+model PriceHistory {
+  id         String   @id @default(uuid())
+  listingId  String   @map("listing_id")
+  skillId    String   @map("skill_id")
+  supply     Int
+  demand     Float
+  multiplier Float
+  price      Int
+  recordedAt DateTime @default(now()) @map("recorded_at")
+
+  listing Listing @relation(fields: [listingId], references: [id])
+  skill   Skill   @relation(fields: [skillId], references: [id])
+
+  @@index([listingId, recordedAt])
+  @@map("price_history")
+}
+
+model PricingConfig {
+  id      String @id @default("default")
+  k       Float  @default(0.6)
+  alpha   Float  @default(1.0)
+  minMult Float  @default(0.7) @map("min_mult")
+  maxMult Float  @default(3.0) @map("max_mult")
+  windowDays Int @default(7) @map("window_days")
+  basePriceMin Int @default(10) @map("base_price_min")
+  basePriceMax Int @default(1000) @map("base_price_max")
+
+  @@map("pricing_config")
+}
