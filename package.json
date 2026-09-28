@@ -2,8 +2,12 @@
   "name": "frontend-roulette",
   "private": true,
   "scripts": {
-    "postinstall": "npm install --prefix server && npm install --prefix client",
+    "postinstall": "npm install --include=dev --prefix server && npm install --include=dev --prefix client",
     "build": "npm run build --prefix client && npm run db:generate --prefix server",
-    "start": "npm start --prefix server"
+    "start": "npm start --prefix server",
+    "dev": "concurrently \"npm run dev --prefix server\" \"npm run dev --prefix client\""
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.5"
   }
 }
