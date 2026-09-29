@@ -2,10 +2,12 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../api/client.js';
 import { Button, StatusChip, Spinner, EmptyState, ErrorState, VCT, Modal, Badge } from '../components/ui.jsx';
+import { useAuth } from '../context/AuthContext.jsx';
 
 const CATEGORIES = ['Haki', 'Swordsmanship', 'Fish-Man Karate', 'Navigation', 'Cooking', 'Devil Fruit Mastery', 'Shipwright', 'Programming / Tech', 'General'];
 
 export default function Requests() {
+  const { user } = useAuth();
   const [tab, setTab] = useState('received'); // 'received' | 'sent' | 'custom'
   const [showCustomModal, setShowCustomModal] = useState(false);
   const [skillName, setSkillName] = useState('');
@@ -13,6 +15,7 @@ export default function Requests() {
   const [offeredBounty, setOfferedBounty] = useState(150);
   const [email, setEmail] = useState('pratushprasad.5398@gmail.com');
   const [description, setDescription] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
   const [successToast, setSuccessToast] = useState('');
 
   const qc = useQueryClient();
@@ -71,6 +74,38 @@ export default function Requests() {
     },
   });
 
+  const voteCustomRequest = useMutation({
+    mutationFn: (id) => api.post(`/requests/custom/${id}/vote`),
+    onMutate: async (id) => {
+      await qc.cancelQueries({ queryKey: ['requests', tab] });
+      const previous = qc.getQueryData(['requests', tab]);
+      
+      qc.setQueryData(['requests', tab], (old) => {
+        if (!old) return old;
+        return {
+          ...old,
+          requests: old.requests.map(req => {
+            if (req.id === id) {
+              const hasVoted = req.upvoterIds?.includes(user?.id);
+              const newUpvoterIds = hasVoted 
+                ? req.upvoterIds.filter(v => v !== user?.id)
+                : [...(req.upvoterIds || []), user?.id];
+              return { ...req, upvoterIds: newUpvoterIds };
+            }
+            return req;
+          })
+        };
+      });
+      return { previous };
+    },
+    onError: (err, id, context) => {
+      qc.setQueryData(['requests', tab], context.previous);
+    },
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: ['requests', tab] });
+    },
+  });
+
   const handleSubmitCustom = (e) => {
     e.preventDefault();
     if (!skillName.trim()) return;
@@ -97,15 +132,8 @@ export default function Requests() {
           </h1>
         </div>
 
-        {/* Generate Request CTA & Tab Switcher */}
+        {/* Tab Switcher */}
         <div className="flex flex-wrap items-center gap-3">
-          <button
-            onClick={() => setShowCustomModal(true)}
-            className="px-4 py-2 text-xs font-bold rounded-xl bg-gold text-[#1A1204] hover:bg-gold-bright transition-all shadow-glow-gold flex items-center gap-1.5 cursor-pointer active:scale-95"
-          >
-            <span className="text-sm">✨</span>
-            <span>+ Generate Needed Skill Request</span>
-          </button>
 
           <div className="flex gap-1 bg-hull p-1 rounded-xl border border-line">
             {[
@@ -143,10 +171,34 @@ export default function Requests() {
       {/* CUSTOM NEEDED SKILLS DEMANDS TAB */}
       {tab === 'custom' && !isLoading && (
         <div className="space-y-4">
-          <div className="flex items-center justify-between text-xs font-mono text-text-muted px-1">
-            <span>Showing Custom Needed Skill Demands</span>
-            <span className="text-gold font-bold">Email alerts to: pratushprasad.5398@gmail.com</span>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs font-mono mb-4 text-text-muted">
+            <div className="flex items-center gap-4 w-full sm:w-auto">
+              <span>Showing Custom Needed Skill Demands</span>
+              <button
+                onClick={() => setShowCustomModal(true)}
+                className="px-3 py-1.5 rounded-lg bg-gold/10 text-gold hover:bg-gold/20 border border-gold/30 transition-all font-bold hidden sm:flex items-center gap-1.5 active:scale-95"
+              >
+                <span>+ List New Request</span>
+              </button>
+            </div>
+            <div className="flex-1 w-full sm:w-auto sm:max-w-xs">
+              <input
+                type="text"
+                placeholder="Search requests by skill..."
+                className="input w-full py-1.5 text-xs bg-hull/60 border-line text-white placeholder-text-muted"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
           </div>
+          
+          {/* Mobile Generate Button */}
+          <button
+            onClick={() => setShowCustomModal(true)}
+            className="w-full mb-4 px-3 py-2 rounded-lg bg-gold/10 text-gold border border-gold/30 transition-all font-bold sm:hidden flex items-center justify-center gap-1.5 active:scale-95"
+          >
+            <span>+ List New Request</span>
+          </button>
 
           {data?.requests?.length === 0 ? (
             <EmptyState
@@ -161,42 +213,59 @@ export default function Requests() {
             />
           ) : (
             <div className="grid grid-cols-1 gap-4">
-              {data?.requests?.map(cr => (
-                <div key={cr.id} className="bg-hull/90 border border-line rounded-xl p-5 shadow-e1 hover:border-gold/50 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  <div className="space-y-1.5 flex-1">
-                    <div className="flex items-center gap-2">
-                      <Badge color="gold">{cr.category}</Badge>
-                      <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full font-bold uppercase ${cr.status === 'OPEN' ? 'bg-amber-400/20 text-amber-400 border border-amber-400/30' : 'bg-foam/20 text-foam border border-foam/30'}`}>
-                        {cr.status}
-                      </span>
+              {data?.requests?.filter(cr => cr.skillName.toLowerCase().includes(searchQuery.toLowerCase())).map(cr => {
+                const hasVoted = cr.upvoterIds?.includes(user?.id);
+                return (
+                  <div key={cr.id} className="bg-hull/90 border border-line rounded-xl p-5 shadow-e1 hover:border-gold/50 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="flex items-start gap-4 flex-1">
+                      {/* Voting Column */}
+                      <div className="flex flex-col items-center gap-1 min-w-[40px] pt-1">
+                        <button 
+                          onClick={() => voteCustomRequest.mutate(cr.id)}
+                          className={`p-1 rounded transition-colors ${hasVoted ? 'text-gold' : 'text-text-muted hover:text-white'}`}
+                        >
+                          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 4l8 10h-5v6h-6v-6H4z"/></svg>
+                        </button>
+                        <span className={`font-mono text-sm font-bold ${hasVoted ? 'text-gold' : 'text-text-secondary'}`}>
+                          {cr.upvoterIds?.length || 0}
+                        </span>
+                      </div>
+                      
+                      {/* Request Details */}
+                      <div className="space-y-1.5 flex-1">
+                        <div className="flex items-center gap-2">
+                          <Badge color="gold">{cr.category}</Badge>
+                          <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full font-bold uppercase ${cr.status === 'OPEN' ? 'bg-amber-400/20 text-amber-400 border border-amber-400/30' : 'bg-foam/20 text-foam border border-foam/30'}`}>
+                            {cr.status}
+                          </span>
+                        </div>
+                        <h3 className="font-display text-xl text-text-primary">{cr.skillName}</h3>
+                        <p className="text-text-secondary text-xs">{cr.description || 'No additional details specified.'}</p>
+                        <div className="text-text-muted text-[11px] font-mono flex items-center gap-2 pt-1">
+                          <span>Requested by <strong className="text-text-primary">{cr.userName}</strong></span>
+                        </div>
+                      </div>
                     </div>
-                    <h3 className="font-display text-xl text-text-primary">{cr.skillName}</h3>
-                    <p className="text-text-secondary text-xs">{cr.description || 'No additional details specified.'}</p>
-                    <div className="text-text-muted text-[11px] font-mono flex items-center gap-2 pt-1">
-                      <span>Requested by <strong className="text-text-primary">{cr.userName}</strong></span>
-                      <span>•</span>
-                      <span>Alert Email: <strong className="text-gold">{cr.email}</strong></span>
-                    </div>
-                  </div>
 
-                  <div className="flex flex-col items-end gap-2 shrink-0">
-                    <VCT amount={cr.offeredBounty} className="text-base font-mono font-bold" />
-                    {cr.status === 'OPEN' ? (
-                      <Button 
-                        compact 
-                        loading={fulfillCustomRequest.isPending}
-                        onClick={() => fulfillCustomRequest.mutate(cr.id)}
-                      >
-                        ⚔️ Offer to Teach
-                      </Button>
-                    ) : (
-                      <span className="text-xs font-semibold text-foam flex items-center gap-1">
-                        <span>✓</span> Master Accepted
-                      </span>
-                    )}
+                    <div className="flex flex-col items-end gap-2 shrink-0">
+                      <VCT amount={cr.offeredBounty} className="text-base font-mono font-bold" />
+                      {cr.status === 'OPEN' ? (
+                        <Button 
+                          compact 
+                          loading={fulfillCustomRequest.isPending}
+                          onClick={() => fulfillCustomRequest.mutate(cr.id)}
+                        >
+                          ⚔️ Offer to Teach
+                        </Button>
+                      ) : (
+                        <span className="text-xs font-semibold text-foam flex items-center gap-1">
+                          <span>✓</span> Master Accepted
+                        </span>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>

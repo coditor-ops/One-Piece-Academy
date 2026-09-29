@@ -205,6 +205,7 @@ model CustomSkillRequest {
   description   String   @default("")
   offeredBounty Int      @default(100) @map("offered_bounty")
   status        String   @default("OPEN")
+  upvoterIds    String[] @db.ObjectId @map("upvoter_ids")
   createdAt     DateTime @default(now()) @map("created_at")
 
   user User @relation(fields: [userId], references: [id])

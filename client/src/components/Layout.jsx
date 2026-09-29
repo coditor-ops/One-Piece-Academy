@@ -51,7 +51,6 @@ export default function Layout() {
     { path: '/market?view=mentors#skills-section', label: 'Find Mentors' },
     ...(user ? [
       { path: '/requests', label: 'Requests' },
-      { path: '/dashboard', label: 'Fleet Admin' },
     ] : []),
   ];
 
@@ -134,19 +133,34 @@ export default function Layout() {
               </NavLink>
             ))}
 
-            {/* Simulate Pirate Rush Nav Button */}
+            {/* DEMO Dropdown */}
             {user && (
-              <button
-                id="tour-pirate-rush"
-                onClick={() => {
-                  if (skills?.length && !rushSkillId) setRushSkillId(skills[0].id);
-                  setShowRushModal(true);
-                }}
-                className="px-3.5 py-1.5 text-xs font-bold rounded-full text-amber-400 hover:bg-amber-400/15 border border-amber-400/40 shadow-sm transition-all flex items-center gap-1.5 cursor-pointer ml-1 active:scale-95"
-              >
-                <span className="animate-pulse">⚡</span>
-                <span>Simulate Pirate Rush</span>
-              </button>
+              <div className="relative group px-1">
+                <button className="px-3.5 py-1.5 text-xs font-bold rounded-full text-amber-400 hover:bg-amber-400/15 border border-amber-400/20 shadow-sm transition-all flex items-center gap-1.5 cursor-pointer">
+                  <span>🛠️ DEMO</span>
+                </button>
+                <div className="absolute top-full right-0 mt-3 w-56 bg-[#0D1526]/95 backdrop-blur-xl border border-white/10 rounded-2xl p-2 shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 flex flex-col gap-1">
+                  <NavLink 
+                    to="/dashboard"
+                    className={({ isActive }) => `px-4 py-2 text-xs font-bold rounded-xl transition-all ${
+                      isActive 
+                        ? 'bg-white/10 text-white' 
+                        : 'text-text-secondary hover:text-white hover:bg-white/5'
+                    }`}
+                  >
+                    Fleet Admin (Instructor)
+                  </NavLink>
+                  <button
+                    onClick={() => {
+                      if (skills?.length && !rushSkillId) setRushSkillId(skills[0].id);
+                      setShowRushModal(true);
+                    }}
+                    className="w-full text-left px-4 py-2 text-xs font-bold text-amber-400 hover:bg-amber-400/10 rounded-xl transition-all flex items-center gap-2"
+                  >
+                    <span className="animate-pulse">⚡</span> Simulate Pirate Rush
+                  </button>
+                </div>
+              </div>
             )}
           </nav>
 
@@ -255,16 +269,30 @@ export default function Layout() {
                 })}
                 
                 {user && (
-                  <button
-                    onClick={() => {
-                      setIsSidebarOpen(false);
-                      if (skills?.length && !rushSkillId) setRushSkillId(skills[0].id);
-                      setShowRushModal(true);
-                    }}
-                    className="mt-6 px-4 py-3.5 rounded-xl font-bold text-amber-400 bg-amber-400/10 border border-amber-400/20 text-left flex items-center justify-center gap-2"
-                  >
-                    <span className="animate-pulse">⚡</span> Simulate Pirate Rush
-                  </button>
+                  <div className="mt-4 pt-4 border-t border-line/40 flex flex-col gap-2">
+                    <span className="text-xs font-mono font-bold text-amber-400 px-4 mb-1 tracking-widest">🛠️ DEMO CONTROLS</span>
+                    <NavLink
+                      to="/dashboard"
+                      onClick={() => setIsSidebarOpen(false)}
+                      className={({ isActive }) => `px-4 py-3.5 rounded-xl font-bold transition-all text-sm ${
+                        isActive
+                          ? 'bg-gold text-[#1A1204] shadow-glow-gold'
+                          : 'text-text-secondary hover:text-white hover:bg-white/5 border border-transparent'
+                      }`}
+                    >
+                      Fleet Admin (Instructor)
+                    </NavLink>
+                    <button
+                      onClick={() => {
+                        setIsSidebarOpen(false);
+                        if (skills?.length && !rushSkillId) setRushSkillId(skills[0].id);
+                        setShowRushModal(true);
+                      }}
+                      className="px-4 py-3.5 rounded-xl font-bold text-amber-400 bg-amber-400/10 border border-amber-400/20 text-left flex items-center gap-2"
+                    >
+                      <span className="animate-pulse">⚡</span> Simulate Pirate Rush
+                    </button>
+                  </div>
                 )}
               </div>
             </motion.div>

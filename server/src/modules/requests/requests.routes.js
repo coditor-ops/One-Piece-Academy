@@ -242,4 +242,32 @@ router.post('/custom/:id/fulfill', authMiddleware, async (req, res, next) => {
   } catch (e) { next(e); }
 });
 
+// Vote for a Custom Needed Skill Request
+router.post('/custom/:id/vote', authMiddleware, async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+    
+    const req_ = await prisma.customSkillRequest.findUnique({ where: { id } });
+    if (!req_) throw appError('NOT_FOUND', 'Custom request not found', 404);
+
+    // Toggle vote
+    const hasVoted = req_.upvoterIds.includes(userId);
+    let newUpvoterIds = [];
+    
+    if (hasVoted) {
+      newUpvoterIds = req_.upvoterIds.filter(vId => vId !== userId);
+    } else {
+      newUpvoterIds = [...req_.upvoterIds, userId];
+    }
+
+    const updated = await prisma.customSkillRequest.update({
+      where: { id },
+      data: { upvoterIds: newUpvoterIds }
+    });
+
+    res.json({ id: updated.id, upvoterIds: updated.upvoterIds, hasVoted: !hasVoted });
+  } catch (e) { next(e); }
+});
+
 export default router;
