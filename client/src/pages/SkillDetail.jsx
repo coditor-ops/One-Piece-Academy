@@ -7,6 +7,7 @@ import { Button, Modal, TierBadge, Spinner, EmptyState, ErrorState, VCT } from '
 import { PriceBadge, WhyThisPrice } from '../components/PriceBadge.jsx';
 import { AddSlotsModal } from '../components/AddSlotsModal.jsx';
 import { PurchaseModal } from '../components/PurchaseModal.jsx';
+import { ReviewsModal } from '../components/ReviewsModal.jsx';
 import { ResponsiveContainer, LineChart, XAxis, YAxis, Tooltip, ReferenceLine, Line, BarChart, Bar } from 'recharts';
 
 function getSkillAudienceAndOverview(skill) {
@@ -21,7 +22,7 @@ function getSkillAudienceAndOverview(skill) {
         'Captains looking to inspire unyielding crew morale and leadership aura',
       ],
       prerequisites: 'Disciplined spirit, 150+ VCT balance, and willingness to endure rigorous endurance drills.',
-      outcomes: ['Awakened Observation & Armament Haki', 'Black Lightning strike aura', '100% Escrow Protection'],
+      outcomes: ['Awakened Observation & Armament Haki', 'Black Lightning strike aura', '100% Secure'],
     },
     Swordsmanship: {
       overview: 'The art of precision blade strikes, flying slash projection, and breath-of-steel sword control. Learn to cut iron, deflect cannonballs, and channel black blade willpower.',
@@ -73,7 +74,7 @@ function getSkillAudienceAndOverview(skill) {
       'Learners aiming to unlock advanced mastery tiers in this category',
     ],
     prerequisites: 'Open mindset, basic foundation in the chosen category, and VCT token balance.',
-    outcomes: ['Verified Academy Skill Certificate', '1-on-1 Master Q&A Session', 'Escrow-guaranteed quality'],
+    outcomes: ['Verified Academy Skill Certificate', '1-on-1 Master Q&A Session', 'Guaranteed quality'],
   };
 
   return audienceMap[category] || defaultDetails;
@@ -85,6 +86,7 @@ export default function SkillDetail() {
   const qc = useQueryClient();
   const [requestModal, setRequestModal] = useState(null);
   const [addSlotModal, setAddSlotModal] = useState(null);
+  const [reviewsModal, setReviewsModal] = useState(null);
 
   const { data: skill, isLoading, error } = useQuery({
     queryKey: ['skill', id],
@@ -299,8 +301,14 @@ export default function SkillDetail() {
                         <span className="font-semibold text-text-primary text-base">{l.provider.name}</span>
                         <TierBadge tier={l.provider.tier} />
                       </div>
-                      <div className="text-text-secondary text-xs mt-0.5">
-                        {l.level} · {l.durationMin}min · ★ {l.avgRating > 0 ? l.avgRating.toFixed(1) : 'New'} ({l.ratingCount} reviews)
+                      <div className="text-text-secondary text-xs mt-0.5 flex items-center gap-1">
+                        <span>{l.level} · {l.durationMin}min ·</span>
+                        <button 
+                          onClick={() => l.ratingCount > 0 && setReviewsModal(l)}
+                          className={`font-semibold flex items-center gap-1 ${l.ratingCount > 0 ? 'text-gold hover:underline cursor-pointer' : 'text-text-muted cursor-default'}`}
+                        >
+                          ★ {l.avgRating > 0 ? l.avgRating.toFixed(1) : 'New'} ({l.ratingCount} reviews)
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -342,7 +350,7 @@ export default function SkillDetail() {
                 <span className="text-tide font-bold">{skill.listings?.length || 0}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-text-muted">Escrow Protection</span>
+                <span className="text-text-muted">Quality</span>
                 <span className="text-foam font-bold">100% Guaranteed</span>
               </div>
             </div>
@@ -374,6 +382,14 @@ export default function SkillDetail() {
           listing={addSlotModal}
           onClose={() => setAddSlotModal(null)}
           onSuccess={() => { setAddSlotModal(null); qc.invalidateQueries({ queryKey: ['skill', id] }); }}
+        />
+      )}
+
+      {reviewsModal && (
+        <ReviewsModal
+          providerId={reviewsModal.providerId}
+          providerName={reviewsModal.provider?.name}
+          onClose={() => setReviewsModal(null)}
         />
       )}
     </div>
@@ -449,7 +465,7 @@ function RequestModal({ listing, user, onClose, onSuccess }) {
             </span>
           </div>
           <p className="text-text-muted text-[11px] mt-1">
-            Held safely by Marine HQ Escrow until session confirmation. 100% refunded if rejected or expired.
+            Safe and secure until session confirmation. 100% refunded if rejected or expired.
           </p>
         </div>
 

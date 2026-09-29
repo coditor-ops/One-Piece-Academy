@@ -13,7 +13,7 @@ export function getSkillAudienceAndOverview(skill, listing) {
         'Captains looking to inspire unyielding crew morale and leadership aura',
       ],
       prerequisites: 'Disciplined spirit, 150+ VCT balance, and willingness to endure rigorous endurance drills.',
-      outcomes: ['Awakened Observation & Armament Haki', 'Black Lightning strike aura', '100% Escrow Protection'],
+      outcomes: ['Awakened Observation & Armament Haki', 'Black Lightning strike aura', '100% Secure'],
     },
     Swordsmanship: {
       overview: 'The art of precision blade strikes, flying slash projection, and breath-of-steel sword control. Learn to cut iron, deflect cannonballs, and channel black blade willpower.',
@@ -65,7 +65,7 @@ export function getSkillAudienceAndOverview(skill, listing) {
       'Learners aiming to unlock advanced mastery tiers in this category',
     ],
     prerequisites: 'Open mindset, basic foundation in the chosen category, and VCT token balance.',
-    outcomes: ['Verified Academy Skill Certificate', '1-on-1 Master Q&A Session', 'Escrow-guaranteed quality'],
+    outcomes: ['Verified Academy Skill Certificate', '1-on-1 Master Q&A Session', 'Guaranteed quality'],
   };
 
   return audienceMap[category] || defaultDetails;

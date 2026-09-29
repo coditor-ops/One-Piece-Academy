@@ -1,10 +1,13 @@
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 import { PriceBadge } from './PriceBadge.jsx';
 import { TierBadge } from './ui.jsx';
+import { ReviewsModal } from './ReviewsModal.jsx';
 
 export function BountyPosterCard({ listing, onBook, onOpenOverview }) {
   const navigate = useNavigate();
+  const [showReviews, setShowReviews] = useState(false);
   if (!listing) return null;
 
   const targetId = listing.skillId || listing.skill?.id || listing.id;
@@ -98,11 +101,20 @@ export function BountyPosterCard({ listing, onBook, onOpenOverview }) {
         </div>
 
         <div className="text-right">
-          <div className="text-xs font-black text-gold flex items-center justify-end gap-1 font-mono">
-            <span>★</span>
-            <span>{listing.avgRating > 0 ? listing.avgRating.toFixed(1) : 'New'}</span>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              if (listing.ratingCount > 0) setShowReviews(true);
+            }}
+            className={`text-xs font-black flex items-center justify-end gap-1 font-mono ${listing.ratingCount > 0 ? 'text-gold hover:underline cursor-pointer' : 'text-text-muted cursor-default'}`}
+          >
+            <span className="text-gold">★</span>
+            <span className={listing.ratingCount > 0 ? 'text-gold' : 'text-text-muted'}>
+              {listing.avgRating > 0 ? listing.avgRating.toFixed(1) : 'New'}
+            </span>
             <span className="text-text-muted text-[10px]">({listing.ratingCount || 0})</span>
-          </div>
+          </button>
           <span className="text-[10px] text-text-muted font-mono block">
             {listing.slots?.length || 0} open slots
           </span>
@@ -125,6 +137,17 @@ export function BountyPosterCard({ listing, onBook, onOpenOverview }) {
           Send Vivre Card 📜
         </button>
       </div>
+
+      {showReviews && listing.providerId && (
+        <ReviewsModal
+          providerId={listing.providerId}
+          providerName={listing.provider?.name}
+          onClose={(e) => {
+            if (e) e.stopPropagation();
+            setShowReviews(false);
+          }}
+        />
+      )}
     </motion.div>
   );
 }

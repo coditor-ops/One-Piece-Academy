@@ -5,6 +5,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../context/AuthContext.jsx';
 import { Button, Modal } from '../components/ui.jsx';
 import { api } from '../api/client.js';
+import { OnboardingBot } from './OnboardingBot.jsx';
 
 export default function Layout() {
   const { user, logout } = useAuth();
@@ -15,6 +16,7 @@ export default function Layout() {
   const [showRushModal, setShowRushModal] = useState(false);
   const [rushSkillId, setRushSkillId] = useState('');
   const [rushSuccessMsg, setRushSuccessMsg] = useState('');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // Fetch live skill list for pirate rush dropdown
   const { data: skills } = useQuery({
@@ -72,25 +74,47 @@ export default function Layout() {
         <div className="pointer-events-auto bg-[#0D1526]/80 backdrop-blur-2xl border border-white/15 rounded-full px-4 sm:px-7 py-3 flex items-center justify-between shadow-[0_16px_40px_rgba(0,0,0,0.6),_inset_0_1px_0_rgba(255,255,255,0.2)] ring-1 ring-gold/20 transition-all duration-300">
           
           {/* Brand Logo & Title */}
-          <NavLink to="/market" className="flex items-center gap-3 group shrink-0">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-hull to-deep flex items-center justify-center text-xl border border-gold/40 group-hover:scale-105 group-hover:border-gold transition-all shadow-[0_0_15px_rgba(242,184,75,0.2)]">
+          <div className="flex items-center gap-3 shrink-0">
+            {/* Mobile Skull Toggle */}
+            <div 
+              className="lg:hidden w-10 h-10 rounded-full bg-gradient-to-br from-hull to-deep flex items-center justify-center text-xl border border-gold/40 cursor-pointer shadow-[0_0_15px_rgba(242,184,75,0.2)] active:scale-95"
+              onClick={() => setIsSidebarOpen(true)}
+            >
               ☠️
             </div>
-            <div className="flex flex-col">
-              <span className="font-display text-lg sm:text-xl text-text-primary tracking-tight group-hover:text-gold transition-colors leading-none">
+            
+            {/* Desktop Logo Link */}
+            <NavLink to="/market" className="hidden lg:flex items-center gap-3 group">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-hull to-deep flex items-center justify-center text-xl border border-gold/40 group-hover:scale-105 group-hover:border-gold transition-all shadow-[0_0_15px_rgba(242,184,75,0.2)]">
+                ☠️
+              </div>
+              <div className="flex flex-col">
+                <span className="font-display text-lg sm:text-xl text-text-primary tracking-tight group-hover:text-gold transition-colors leading-none">
+                  ONE PIECE
+                </span>
+                <span className="font-display text-xs tracking-widest text-gold leading-tight">
+                  ACADEMY
+                </span>
+              </div>
+            </NavLink>
+
+            {/* Mobile Title */}
+            <div className="flex flex-col lg:hidden cursor-pointer" onClick={() => navigate('/market')}>
+              <span className="font-display text-lg sm:text-xl text-text-primary tracking-tight leading-none">
                 ONE PIECE
               </span>
               <span className="font-display text-xs tracking-widest text-gold leading-tight">
                 ACADEMY
               </span>
             </div>
-          </NavLink>
+          </div>
 
           {/* Desktop Navigation Capsule Links */}
           <nav className="hidden lg:flex items-center gap-1 bg-deep/60 px-3 py-1.5 rounded-full border border-line/60 shadow-inner">
             {navItems.map(item => (
               <NavLink 
                 key={item.path} 
+                id={`tour-nav-${item.label.toLowerCase().replace(/\s+/g, '-')}`}
                 to={item.path}
                 onClick={() => {
                   if (item.path.includes('#skills-section')) {
@@ -113,6 +137,7 @@ export default function Layout() {
             {/* Simulate Pirate Rush Nav Button */}
             {user && (
               <button
+                id="tour-pirate-rush"
                 onClick={() => {
                   if (skills?.length && !rushSkillId) setRushSkillId(skills[0].id);
                   setShowRushModal(true);
@@ -131,14 +156,13 @@ export default function Layout() {
               <>
                 {/* Token Chest Badge */}
                 <NavLink 
+                  id="tour-wallet"
                   to="/wallet" 
                   className="flex items-center gap-2 bg-[#EADBB8] text-[#2A1D0E] px-3 sm:px-4 py-2 rounded-full font-mono text-xs font-black shadow-md hover:brightness-105 transition-all border border-[#C9B58A]"
                   title="Your Berries / Vivre Coins"
                 >
                   <span>🪙</span>
                   <span>{user.balance?.toLocaleString() || 500} VCT</span>
-                  <span className="opacity-60 hidden sm:inline">•</span>
-                  <span className="text-[11px] opacity-80 hidden sm:inline">Held: {user.escrowHeld?.toLocaleString() || 0}</span>
                 </NavLink>
 
                 {/* Profile Link */}
@@ -170,8 +194,87 @@ export default function Layout() {
         </div>
       </header>
 
+      {/* Mobile Sidebar Overlay */}
+      <AnimatePresence>
+        {isSidebarOpen && (
+          <>
+            <motion.div 
+              initial={{ opacity: 0 }} 
+              animate={{ opacity: 1 }} 
+              exit={{ opacity: 0 }} 
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] lg:hidden"
+              onClick={() => setIsSidebarOpen(false)}
+            />
+            <motion.div 
+              initial={{ x: '-100%' }} 
+              animate={{ x: 0 }} 
+              exit={{ x: '-100%' }} 
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className="fixed top-0 left-0 bottom-0 w-[280px] max-w-[80vw] bg-hull border-r border-gold/20 z-[70] lg:hidden flex flex-col p-6 shadow-2xl overflow-y-auto"
+            >
+              <div className="flex items-center justify-between mb-8">
+                <div className="flex items-center gap-3 cursor-pointer" onClick={() => { setIsSidebarOpen(false); navigate('/market'); }}>
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-hull to-deep flex items-center justify-center text-xl border border-gold/40">
+                    ☠️
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="font-display text-lg text-text-primary leading-none">ONE PIECE</span>
+                    <span className="font-display text-[10px] tracking-widest text-gold leading-tight">ACADEMY</span>
+                  </div>
+                </div>
+                <button onClick={() => setIsSidebarOpen(false)} className="text-text-muted hover:text-white p-2 text-xl leading-none font-bold">
+                  ✕
+                </button>
+              </div>
+
+              <div className="flex flex-col gap-2">
+                {navItems.map(item => {
+                  const active = isActive(item.path);
+                  return (
+                    <NavLink
+                      key={item.path}
+                      to={item.path}
+                      onClick={() => {
+                        setIsSidebarOpen(false);
+                        if (item.path.includes('#skills-section')) {
+                          setTimeout(() => {
+                            const el = document.getElementById('skills-section');
+                            if (el) el.scrollIntoView({ behavior: 'smooth' });
+                          }, 80);
+                        }
+                      }}
+                      className={`px-4 py-3.5 rounded-xl font-bold transition-all text-sm ${
+                        active
+                          ? 'bg-gold text-[#1A1204] shadow-glow-gold'
+                          : 'text-text-secondary hover:text-white hover:bg-white/5 border border-transparent'
+                      }`}
+                    >
+                      {item.label}
+                    </NavLink>
+                  );
+                })}
+                
+                {user && (
+                  <button
+                    onClick={() => {
+                      setIsSidebarOpen(false);
+                      if (skills?.length && !rushSkillId) setRushSkillId(skills[0].id);
+                      setShowRushModal(true);
+                    }}
+                    className="mt-6 px-4 py-3.5 rounded-xl font-bold text-amber-400 bg-amber-400/10 border border-amber-400/20 text-left flex items-center justify-center gap-2"
+                  >
+                    <span className="animate-pulse">⚡</span> Simulate Pirate Rush
+                  </button>
+                )}
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
       {/* Main Container */}
       <main className="flex-1 w-full max-w-[1920px] mx-auto px-4 sm:px-8 py-4 flex flex-col">
+        {user && <OnboardingBot user={user} />}
         <AnimatePresence mode="wait">
           <motion.div
             key={location.pathname}

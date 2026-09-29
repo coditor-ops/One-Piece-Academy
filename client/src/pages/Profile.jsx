@@ -67,7 +67,7 @@ export default function Profile() {
 
         <div className="flex gap-4 text-sm">
           <VCT amount={user.balance} />
-          <Badge color="muted">🔒 {user.escrowHeld?.toLocaleString() || 0} VCT in escrow</Badge>
+          <Badge color="muted">💎 {user.balance?.toLocaleString() || 0} VCT in wallet</Badge>
         </div>
 
         <div className="mt-4 flex gap-2">

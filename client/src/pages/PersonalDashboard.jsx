@@ -109,8 +109,6 @@ export default function PersonalDashboard() {
           <div className="bg-[#EADBB8] text-[#2A1D0E] px-4 py-2.5 rounded-2xl font-mono text-xs font-black shadow-md border border-[#C9B58A] flex items-center gap-2">
             <span>🪙</span>
             <span>{user?.balance?.toLocaleString() || 500} VCT Available</span>
-            <span className="opacity-50">•</span>
-            <span className="opacity-80">Held: {user?.escrowHeld?.toLocaleString() || 0}</span>
           </div>
 
           <button
@@ -166,7 +164,7 @@ export default function PersonalDashboard() {
         <div className="space-y-4">
           <div className="flex justify-between items-center text-xs font-mono text-text-muted px-1">
             <span>Showing {purchasedRequests.length} Purchased Course Enrollments</span>
-            <span className="text-gold font-bold">Protected by Escrow</span>
+            <span className="text-gold font-bold">Secure Booking</span>
           </div>
 
           {loadingLearner && <div className="flex justify-center py-16"><Spinner size={32} /></div>}
@@ -360,7 +358,7 @@ export default function PersonalDashboard() {
           <div className="flex justify-between items-center border-b border-line/40 pb-4">
             <div>
               <h3 className="font-display text-2xl text-text-primary">VCT Token Transaction History</h3>
-              <p className="text-text-secondary text-xs mt-0.5">Real-time ledger of your deposits, payouts, grants, and escrow holds.</p>
+              <p className="text-text-secondary text-xs mt-0.5">Real-time ledger of your deposits, payouts, and grants.</p>
             </div>
             <Button compact variant="secondary" onClick={() => navigate('/wallet')}>
               Open Full Wallet

@@ -276,8 +276,8 @@ export default function Market() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {mentors.map(m => (
-              <div key={m.id} className="bg-hull/90 backdrop-blur-xl border border-line/80 rounded-2xl p-6 shadow-e1 hover:border-gold/50 transition-all flex flex-col justify-between">
+            {mentors.map((m, index) => (
+              <div key={m.id} id={index === 0 ? 'tour-mentor-card' : undefined} className="bg-hull/90 backdrop-blur-xl border border-line/80 rounded-2xl p-6 shadow-e1 hover:border-gold/50 transition-all flex flex-col justify-between">
                 <div>
                   <div className="flex items-center gap-3.5 mb-4">
                     <div className="w-14 h-14 rounded-full bg-deep flex items-center justify-center text-2xl font-bold text-gold border-2 border-gold/40 shadow-inner">
@@ -335,13 +335,14 @@ export default function Market() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {data.listings.map(l => (
-              <BountyPosterCard
-                key={l.id}
-                listing={l}
-                onBook={l => setPurchaseListing(l)}
-                onOpenOverview={l => setOverviewListing(l)}
-              />
+            {data.listings.map((l, index) => (
+              <div key={l.id} id={index === 0 ? 'tour-skill-card' : undefined}>
+                <BountyPosterCard
+                  listing={l}
+                  onBook={l => setPurchaseListing(l)}
+                  onOpenOverview={l => setOverviewListing(l)}
+                />
+              </div>
             ))}
           </div>
         </div>

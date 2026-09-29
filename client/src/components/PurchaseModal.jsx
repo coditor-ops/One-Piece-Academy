@@ -141,7 +141,7 @@ export function PurchaseModal({ listing, onClose }) {
             className="w-full h-12 text-sm font-bold bg-gold text-[#1A1204] rounded-xl shadow-glow-gold"
           >
             {purchaseMutation.isPending
-              ? 'Processing Vivre Card Escrow...'
+              ? 'Processing Vivre Card...'
               : 'Send Vivre Card and Unlock Lecture (' + currentPrice.toLocaleString() + ' VCT)'}
           </Button>
         )}

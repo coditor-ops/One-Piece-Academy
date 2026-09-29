@@ -90,7 +90,7 @@ export default function Requests() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-line/40 pb-5">
         <div>
           <span className="text-gold text-xs font-mono font-semibold uppercase tracking-widest block mb-1">
-            📜 Marine HQ Escrow & Skill Inbox
+            📜 Marine HQ Skill Inbox
           </span>
           <h1 className="font-display text-3xl sm:text-4xl text-text-primary">
             Vivre Card Requests
@@ -246,7 +246,7 @@ export default function Requests() {
               {tab === 'sent' && r.status === 'PENDING' && (
                 <div className="pt-3 border-t border-line/40">
                   <Button compact variant="danger" onClick={() => cancel.mutate(r.id)} loading={cancel.isPending}>
-                    ✕ Cancel & Release Escrow
+                    ✕ Cancel Request
                   </Button>
                 </div>
               )}

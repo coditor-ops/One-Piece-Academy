@@ -333,8 +333,6 @@ export default function Landing() {
                 >
                   <span>🪙</span>
                   <span>{user.balance?.toLocaleString() || 500} VCT</span>
-                  <span className="opacity-60 hidden sm:inline">•</span>
-                  <span className="text-[11px] opacity-80 hidden sm:inline">Held: {user.escrowHeld?.toLocaleString() || 0}</span>
                 </button>
 
                 <button 

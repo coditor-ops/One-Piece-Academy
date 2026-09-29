@@ -31,7 +31,7 @@ export default function Wallet() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-line/40 pb-5">
         <div>
           <span className="text-gold text-xs font-mono font-semibold uppercase tracking-widest block mb-1">
-            🏴‍☠️ Pirate Ledger & Token Escrow
+            🏴‍☠️ Pirate Ledger & Token Wallet
           </span>
           <h1 className="font-display text-3xl sm:text-4xl text-text-primary">
             Treasure Chest Wallet
@@ -43,19 +43,12 @@ export default function Wallet() {
       </div>
 
       {/* Balance Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-1 gap-4">
         <div className="bg-hull border border-line rounded-2xl p-6 text-center shadow-e1">
           <div className="text-text-muted text-xs uppercase tracking-widest font-mono mb-2">
             Available Balance
           </div>
           <VCT amount={wallet.balance} className="text-4xl font-mono font-black text-gold" />
-        </div>
-
-        <div className="bg-hull border border-line rounded-2xl p-6 text-center shadow-e1">
-          <div className="text-text-muted text-xs uppercase tracking-widest font-mono mb-2">
-            Held in Escrow
-          </div>
-          <VCT amount={wallet.escrowHeld} className="text-4xl font-mono font-black text-ember" />
         </div>
       </div>
 
