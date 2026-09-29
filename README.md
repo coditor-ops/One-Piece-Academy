@@ -1,5 +1,7 @@
 # One Piece Academy — Sabaody Skill Exchange
 
+**🚀 Live Demo:** [https://one-piece-academy.onrender.com/](https://one-piece-academy.onrender.com/)
+
 A One Piece themed peer-to-peer skill marketplace with dynamic, demand-based pricing. Learners trade skills using an in-app currency, **Vivre Card Tokens (VCT)**. The price of a skill rises when many people want it and few teach it, and falls when the opposite is true.
 
 ## Features
